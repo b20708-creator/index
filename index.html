@@ -1,0 +1,719 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>study with 美</title>
+    <style>
+        /* 네이버 웹폰트 나눔스퀘어 라운드 */
+        @import url('https://hangeul.pstatic.net/hangeul_static/css/nanum-square-round.css');
+
+        body { font-family: 'NanumSquareRound', 'Malgun Gothic', sans-serif; background-color: #f4f7f6; margin: 0; padding: 20px; display: flex; justify-content: center; align-items: center; min-height: 100vh; }
+        .app-container { background: white; width: 100%; max-width: 440px; padding: 25px 20px; border-radius: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); position: relative; }
+        
+        /* 🎨 로그아웃 버튼 크기: 전체 너비의 1/6 (16.66%) */
+        .logout-btn { position: absolute; top: 15px; right: 15px; width: 16.66%; text-align: center; background: #e0e0e0; color: #555; border: none; padding: 6px 0; border-radius: 12px; font-size: 11px; font-weight: bold; cursor: pointer; font-family: 'NanumSquareRound', sans-serif; transition: 0.2s; }
+        .logout-btn:hover { background: #ccc; }
+
+        h2, h3 { color: #333; text-align: center; margin-top: 10px; }
+        input[type="text"], input[type="password"], input[type="number"], select, textarea { width: 100%; padding: 12px; margin-top: 10px; border: 1px solid #ccc; border-radius: 8px; box-sizing: border-box; font-family: 'NanumSquareRound', sans-serif; }
+        button { background-color: #4CAF50; color: white; border: none; cursor: pointer; font-weight: bold; padding: 12px; border-radius: 8px; margin-top: 10px; width: 100%; font-family: 'NanumSquareRound', sans-serif; font-size: 15px; transition: 0.2s; }
+        button:hover { background-color: #45a049; }
+        button:disabled { background-color: #9e9e9e; cursor: not-allowed; }
+        .hidden { display: none !important; }
+        
+        /* 첫 화면 로그인 컨테이너 */
+        #login-screen { padding: 40px 10px; text-align: center; }
+        #login-screen h2 { font-size: 28px; margin-bottom: 30px; color: #4CAF50; }
+        #login-screen p { color: #666; font-size: 14px; margin-bottom: 20px; }
+
+        /* 공통 네비게이션 바 */
+        .nav-bar { display: flex; justify-content: space-between; gap: 5px; margin-bottom: 20px; margin-top: 30px; background: #f0f0f0; padding: 5px; border-radius: 10px; }
+        .nav-bar button { margin: 0; padding: 8px; font-size: 13px; border-radius: 8px; width: 33%; background: #fff; color: #555; }
+        .nav-bar button.active { background: #4CAF50; color: white; }
+
+        /* 캐릭터 박스 및 나의 하트 */
+        .character-box { text-align: center; margin: 15px 0; padding: 15px; background: #e3f2fd; border-radius: 10px; position: relative;}
+        .character-emoji { margin: 10px 0; min-height: 60px; display: flex; justify-content: center; align-items: center; }
+        .character-emoji img { width: 100%; max-width: 60px; height: auto; display: block; margin: 0 auto; border-radius: 8px; }
+        .my-hearts { position: absolute; top: 15px; right: 15px; background: #ffebee; color: #d32f2f; padding: 5px 10px; border-radius: 15px; font-size: 13px; font-weight: bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);}
+        
+        /* 투두, 타이머 관련 */
+        .timer-display { font-size: 32px; font-weight: bold; text-align: center; margin: 15px 0; color: #ff5722; }
+        .flex-row { display: flex; gap: 10px; align-items: center; }
+        .flex-row input { margin-top: 0; }
+        .flex-row select { margin-top: 0; }
+        .flex-row button { margin-top: 0; }
+        .subject-list, .todo-list { margin-top: 15px; background: #fff; border: 1px solid #eee; border-radius: 8px; padding: 10px; }
+        .subject-item, .todo-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: 1px solid #f9f9f9; font-size: 14px; }
+        .todo-item.done { text-decoration: line-through; color: #999; }
+        
+        .progress-bar-bg { background: #e0e0e0; border-radius: 10px; height: 10px; width: 100%; margin-top: 5px; overflow: hidden; }
+        .progress-bar-fill { background: #4CAF50; height: 100%; width: 0%; transition: width 0.3s ease; }
+        
+        /* 이전 기록, 종합 평가 관련 */
+        .history-card { background: #f9f9f9; border: 1px solid #e0e0e0; border-radius: 8px; padding: 12px; margin-bottom: 12px; font-size: 14px; position: relative; }
+        .history-emoji { position: absolute; top: 15px; right: 15px; width: 35px; height: 35px; display: flex; justify-content: center; align-items: center; }
+        .history-emoji img { width: 100%; max-width: 35px; height: auto; border-radius: 4px; }
+        .result-box { text-align: center; background: #fff9c4; border-radius: 10px; padding: 20px; margin: 20px 0; border: 2px dashed #fbc02d; }
+        .star-rating { font-size: 24px; text-align: center; cursor: pointer; color: #ccc; margin: 10px 0;}
+        .star-rating span.active { color: #ffc107; }
+
+        /* 친구 목록 스타일 */
+        .friend-card { display: flex; align-items: center; justify-content: space-between; background: #fff; border: 1px solid #e0e0e0; border-radius: 10px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .friend-info { display: flex; align-items: center; gap: 12px; }
+        .friend-pic { width: 45px; height: 45px; border-radius: 50%; background: #eee; display: flex; justify-content: center; align-items: center; overflow: hidden; }
+        .friend-pic img { width: 100%; height: auto; }
+        .friend-details { display: flex; flex-direction: column; }
+        .friend-name { font-weight: bold; font-size: 15px; color: #333; display: flex; align-items: center; gap: 5px; }
+        .friend-status { font-size: 12px; color: #666; margin-top: 3px; }
+        .heart-btn { background: #ffebee; color: #d32f2f; border: 1px solid #ffcdd2; border-radius: 20px; padding: 6px 12px; font-size: 13px; width: auto; display: flex; align-items: center; gap: 5px; margin: 0; cursor: pointer; }
+        .heart-btn:hover { background: #ffcdd2; }
+
+        /* 캐릭터 꾸미기 전용 스타일 */
+        #dressup-avatar-box { margin: 20px auto; width: 180px; height: 180px; position: relative; background: #fff; border-radius: 15px; box-shadow: 0 4px 10px rgba(0,0,0,0.05); border: 2px dashed #4CAF50; display: flex; justify-content: center; align-items: center;}
+        #dressup-base-img { width: 100%; height: 100%; object-fit: contain; border-radius: 10px; }
+        #dressup-cloth-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; object-fit: contain; display: none; z-index: 10; }
+        .cloth-item { width: 60px; height: 60px; border: 2px solid #ddd; border-radius: 10px; background: #fafafa; cursor: pointer; display: flex; flex-direction: column; justify-content: center; align-items: center; font-size: 11px; padding: 5px; text-align: center; }
+        .cloth-item:hover { border-color: #4CAF50; background: #e8f5e9; }
+        .cloth-item img { width: 35px; height: 35px; margin-bottom: 3px; object-fit: contain;}
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+    <button id="logout-btn" class="logout-btn hidden" onclick="logout()">로그아웃</button>
+
+    <div id="login-screen">
+        <h2>📚 study with 美</h2>
+        <p>우리 반만의 시크릿 스터디 라운지<br>아이디가 없다면 입력하는 즉시 가입됩니다.</p>
+        <input type="text" id="username" placeholder="사용할 아이디 (이름)">
+        <input type="password" id="password" placeholder="비밀번호">
+        <button onclick="login()">시작하기</button>
+    </div>
+
+    <div id="main-screen" class="hidden">
+        <div class="nav-bar">
+            <button class="active">🏠 스터디</button>
+            <button onclick="switchScreen('social-screen')">👥 친구들</button>
+            <button onclick="switchScreen('history-screen')">📜 기록</button>
+        </div>
+
+        <div class="character-box">
+            <div class="my-hearts">💖 <span id="my-heart-count">0</span></div>
+            <div style="font-size: 14px; color: #2196F3; font-weight: bold;">[나의 현재 계급]</div>
+            <div id="character-emoji" class="character-emoji"></div>
+            <div id="character-level" style="font-size: 16px; font-weight: bold; color: #333;">할 일을 추가해주세요!</div>
+            <div style="font-size: 13px; color: #666; margin-top: 5px;">달성률: <span id="todo-progress-text">0</span>%</div>
+            <div class="progress-bar-bg">
+                <div class="progress-bar-fill" id="todo-progress-bar"></div>
+            </div>
+        </div>
+        
+        <h3>✅ 오늘의 할 일 (To-Do)</h3>
+        <div class="flex-row">
+            <input type="text" id="todo-input" placeholder="할 일을 입력하세요">
+            <button onclick="addTodo()" style="width: 80px; background-color: #00897b;">추가</button>
+        </div>
+        <div class="todo-list" id="todo-list-container"></div>
+
+        <hr style="border: 0; height: 1px; background: #eee; margin: 20px 0;">
+
+        <h3>⏱ 과목별 타이머</h3>
+        <div class="flex-row">
+            <input type="text" id="subject-input" placeholder="과목명 (예: 수학)">
+            <button onclick="addSubject()" style="width: 80px;">추가</button>
+        </div>
+        
+        <select id="subject-select" onchange="selectSubject()">
+            <option value="">과목을 선택하고 측정 시작</option>
+        </select>
+
+        <div class="timer-display" id="time-display">00:00:00</div>
+        
+        <div class="flex-row">
+            <button onclick="startTimer()" id="start-btn">▶ 시작</button>
+            <button onclick="stopTimer()" id="stop-btn" style="background-color: #f44336;">⏸ 종료</button>
+        </div>
+
+        <h3>📚 오늘의 과목별 공부 시간</h3>
+        <div class="subject-list" id="subject-time-list"></div>
+
+        <button onclick="endDay()" style="margin-top: 30px; background-color: #e91e63;">🌙 하루 종료 및 평가하기</button>
+    </div>
+
+    <div id="social-screen" class="hidden">
+        <div class="nav-bar">
+            <button onclick="switchScreen('main-screen')">🏠 스터디</button>
+            <button class="active">👥 친구들</button>
+            <button onclick="switchScreen('history-screen')">📜 기록</button>
+        </div>
+
+        <h2>우리 반 스터디 현황 🔥</h2>
+        <p style="text-align: center; color: #666; font-size: 13px;">가상의 친구 목록을 직접 관리하는 <strong>로컬 스터디 모드</strong>입니다.</p>
+
+        <div style="background: #f9f9f9; padding: 12px; border-radius: 8px; border: 1px solid #e0e0e0; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 8px 0; color: #333;">➕ 새로운 친구 등록</h4>
+            <div class="flex-row">
+                <input type="text" id="friend-name-input" placeholder="친구 이름 입력" style="margin-top:0;">
+                <button onclick="addLocalFriend()" style="width: 80px; background-color: #00897b; margin-top:0;">등록</button>
+            </div>
+        </div>
+
+        <div id="friend-list-container" style="margin-top: 20px;"></div>
+    </div>
+
+    <div id="history-screen" class="hidden">
+        <div class="nav-bar">
+            <button onclick="switchScreen('main-screen')">🏠 스터디</button>
+            <button onclick="switchScreen('social-screen')">👥 친구들</button>
+            <button class="active">📜 기록</button>
+        </div>
+        <h2>📜 나의 이전 기록</h2>
+        <div id="history-list"></div>
+    </div>
+    
+    <div id="eval-screen" class="hidden">
+        <h2>하루 종합 평가 📝</h2>
+        <div class="result-box">
+            <h3 style="margin-top: 0; color: #555;">오늘 확정된 나의 신분</h3>
+            <div id="final-result-emoji" class="character-emoji"></div>
+            <strong id="final-result-text" style="color: #d32f2f; font-size: 20px;">평가 불가</strong>
+            <p style="margin-bottom: 5px; color: #555; margin-top: 15px;">할 일 달성률: <strong id="final-todo-rate">0%</strong></p>
+            <p style="margin-bottom: 0; color: #555;">총 공부 시간: <strong id="total-study-time">0분</strong></p>
+        </div>
+        
+        <h3>스스로의 집중도 평가</h3>
+        <div class="star-rating" id="stars">
+            <span onclick="setRating(1)">★</span><span onclick="setRating(2)">★</span><span onclick="setRating(3)">★</span><span onclick="setRating(4)">★</span><span onclick="setRating(5)">★</span>
+        </div>
+        <input type="hidden" id="focus-rating" value="0">
+
+        <h3>오늘의 방해요소</h3>
+        <textarea id="distractions" rows="3" placeholder="오늘 집중을 방해한 요소는 무엇인가요?"></textarea>
+
+        <button onclick="goToDressup()" style="background-color: #9c27b0;">✨ 평가 저장하고 캐릭터 꾸미러 가기 ✨</button>
+    </div>
+
+    <div id="dressup-screen" class="hidden">
+        <h2>🎨 오늘의 캐릭터 꾸미기</h2>
+        <p style="text-align: center; color: #666; font-size: 13px;">오늘 획득한 신분에 맞는 옷을 입혀주세요!</p>
+
+        <div id="dressup-avatar-box">
+            <img id="dressup-base-img" src="">
+            <img id="dressup-cloth-overlay" src="">
+        </div>
+
+        <h4 style="text-align: center; color: #333;">👗 내 옷장 리스트</h4>
+        <div id="clothes-list" style="display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;"></div>
+
+        <button onclick="saveAndFinishDay()" style="margin-top: 30px; background-color: #4CAF50;">✅ 최종 저장하고 하루 마치기</button>
+    </div>
+
+</div>
+
+<script>
+    // === 1. 설정 및 전역 변수 ===
+    // 👑 왕 신분 이미지 파일명을 '왕.jpg'로 변경 완료
+    const rankVisuals = {
+        "caveman": { emoji: "🪨", name: "원시인", imgSrc: "원시인.png", color: "#795548", baseMsg: "할 일을 추가하고 진화하세요!", msgPrefix: "[원시인] 우가우가... (<25%)" },
+        "beggar": { emoji: "🥣", name: "거지", imgSrc: "거지.png", color: "#ff9800", msgPrefix: "[거지] 한 푼만 줍쇼... (25%~)" },
+        "student": { emoji: "🎒", name: "학생", imgSrc: "gky.png", color: "#4CAF50", msgPrefix: "[학생] 공부가 제일 쉬웠어요 (50%~)" },
+        "conglomerate": { emoji: "💼", name: "커리어우먼", imgSrc: "여자.png", color: "#2196F3", msgPrefix: "[커리어우먼] 당당하고 멋진 나 (75%~)" },
+        "king": { emoji: "👑", name: "왕", imgSrc: "왕.jpg", color: "#9c27b0", msgPrefix: "[왕] 통촉하여 주시옵소서! (100%)" }
+    };
+
+    const clothesData = {
+        "caveman": [
+            { id: "c1", name: "나뭇잎", img: "나뭇잎.png" },
+            { id: "c2", name: "불", img: "불.png" }
+        ],
+        "beggar": [
+            { id: "b1", name: "골판지 갑옷", img: "상자.png" },
+            { id: "b2", name: "신문지 망토", img: "신문지.png" }
+        ],
+        "student": [
+            { id: "s1", name: "마법의 책", img: "image-Photoroom (1).png" },
+            { id: "s2", name: "단짝 고양이", img: "image-Photoroom (2).png" }
+        ],
+        "conglomerate": [
+            { id: "cw1", name: "가방", img: "가방.png" },
+            { id: "cw2", name: "선글라스", img: "썬글라스.png" }
+        ],
+        "king": [
+            { id: "k1", name: "신하", img: "신하.png" },
+            { id: "k2", name: "호랑이", img: "호랑이.png" }
+        ]
+    };
+
+    let currentUser = "";
+    let timerInterval;
+    let currentSeconds = 0; 
+    let currentSubject = "";
+    let currentRankKey = "caveman";
+    let selectedClothImg = ""; 
+
+    function formatTime(totalSeconds) {
+        const h = String(Math.floor(totalSeconds / 3600)).padStart(2, '0');
+        const m = String(Math.floor((totalSeconds % 3600) / 60)).padStart(2, '0');
+        const s = String(totalSeconds % 60).padStart(2, '0');
+        return `${h}:${m}:${s}`;
+    }
+
+    // === 2. 로그인 및 네비게이션 ===
+    function login() {
+        const id = document.getElementById('username').value.trim();
+        const pw = document.getElementById('password').value;
+        if(!id || !pw) return alert("아이디와 비밀번호를 입력해주세요.");
+        
+        const savedPw = localStorage.getItem('user_' + id);
+        if(savedPw && savedPw !== pw) return alert("비밀번호가 틀렸습니다.");
+        
+        if(!savedPw) {
+            localStorage.setItem('user_' + id, pw); 
+            localStorage.setItem(`user_${id}_subjects`, JSON.stringify({}));
+            localStorage.setItem(`user_${id}_history`, JSON.stringify([]));
+            localStorage.setItem(`user_${id}_todos`, JSON.stringify([]));
+            localStorage.setItem(`user_${id}_friends`, JSON.stringify([]));
+            localStorage.setItem(`user_${id}_myhearts`, "0");
+        }
+        
+        currentUser = id;
+        localStorage.setItem('currentUser', id);
+        
+        document.getElementById('login-screen').classList.add('hidden');
+        document.getElementById('logout-btn').classList.remove('hidden');
+
+        switchScreen('main-screen');
+        loadTodayData();
+        
+        const myHearts = localStorage.getItem(`user_${currentUser}_myhearts`) || "0";
+        document.getElementById('my-heart-count').innerText = myHearts;
+    }
+
+    function logout() {
+        clearInterval(timerInterval);
+        localStorage.removeItem('currentUser');
+        location.reload();
+    }
+
+    function switchScreen(screenId) {
+        document.getElementById('main-screen').classList.add('hidden');
+        document.getElementById('social-screen').classList.add('hidden');
+        document.getElementById('history-screen').classList.add('hidden');
+        document.getElementById('eval-screen').classList.add('hidden');
+        document.getElementById('dressup-screen').classList.add('hidden');
+        
+        document.getElementById(screenId).classList.remove('hidden');
+
+        if(screenId === 'social-screen') renderLocalFriendsData();
+        if(screenId === 'history-screen') showHistory();
+        if(screenId === 'main-screen') loadTodayData();
+    }
+
+    // === 3. 스터디 메인 로직 ===
+    function loadTodayData() {
+        refreshSubjectDOM();
+        refreshTodoDOM();
+        const myHearts = localStorage.getItem(`user_${currentUser}_myhearts`) || "0";
+        document.getElementById('my-heart-count').innerText = myHearts;
+    }
+
+    function getTodosData() { return JSON.parse(localStorage.getItem(`user_${currentUser}_todos`) || '[]'); }
+    function saveTodosData(todos) { localStorage.setItem(`user_${currentUser}_todos`, JSON.stringify(todos)); }
+
+    function addTodo() {
+        const input = document.getElementById('todo-input');
+        const text = input.value.trim();
+        if(!text) return alert("할 일을 입력하세요.");
+        const todos = getTodosData();
+        todos.push({ id: Date.now(), text: text, done: false });
+        saveTodosData(todos);
+        input.value = "";
+        refreshTodoDOM();
+    }
+
+    function toggleTodo(id) {
+        const todos = getTodosData();
+        const index = todos.findIndex(t => t.id === id);
+        if(index > -1) { 
+            todos[index].done = !todos[index].done; 
+            saveTodosData(todos); 
+            refreshTodoDOM(); 
+        }
+    }
+
+    function deleteTodo(id) {
+        let todos = getTodosData();
+        todos = todos.filter(t => t.id !== id);
+        saveTodosData(todos);
+        refreshTodoDOM();
+    }
+
+    function calculateTodoRate(todos) {
+        if(todos.length === 0) return 0;
+        const doneCount = todos.filter(t => t.done).length;
+        return Math.round((doneCount / todos.length) * 100);
+    }
+
+    function getRankKey(todos, rate) {
+        if (todos.length === 0) return "caveman";
+        if (rate === 100) return "king";
+        if (rate >= 75) return "conglomerate";
+        if (rate >= 50) return "student";
+        if (rate >= 25) return "beggar";
+        return "caveman";
+    }
+
+    function refreshTodoDOM() {
+        const todos = getTodosData();
+        const listDiv = document.getElementById('todo-list-container');
+        listDiv.innerHTML = '';
+
+        if(todos.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:#999; font-size:13px; margin:5px;">등록된 할 일이 없습니다.</p>';
+        } else {
+            todos.forEach(todo => {
+                const item = document.createElement('div');
+                item.className = `todo-item ${todo.done ? 'done' : ''}`;
+                item.innerHTML = `
+                    <label style="cursor:pointer; display:flex; align-items:center; gap:8px;">
+                        <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${todo.id})"> ${todo.text}
+                    </label>
+                    <button onclick="deleteTodo(${todo.id})" style="width: auto; padding: 2px 6px; margin: 0; background: #e0e0e0; color: #555; font-size:12px;">삭제</button>
+                `;
+                listDiv.appendChild(item);
+            });
+        }
+        
+        const rate = calculateTodoRate(todos);
+        document.getElementById('todo-progress-text').innerText = rate;
+        document.getElementById('todo-progress-bar').style.width = rate + "%";
+
+        currentRankKey = getRankKey(todos, rate);
+        const visual = rankVisuals[currentRankKey];
+
+        document.getElementById('character-emoji').innerHTML = `<img src="${visual.imgSrc}" alt="${visual.name}" style="max-width: 60px;">`;
+        const levelEl = document.getElementById('character-level');
+        levelEl.style.color = visual.color;
+        levelEl.innerText = todos.length === 0 ? visual.baseMsg : visual.msgPrefix;
+    }
+
+    // === 4. 과목 타이머 로직 ===
+    function getSubjectsData() { return JSON.parse(localStorage.getItem(`user_${currentUser}_subjects`) || '{}'); }
+
+    function refreshSubjectDOM() {
+        const subjects = getSubjectsData();
+        const select = document.getElementById('subject-select');
+        const listDiv = document.getElementById('subject-time-list');
+        select.innerHTML = '<option value="">과목을 선택하고 측정 시작</option>';
+        listDiv.innerHTML = '';
+
+        for (const [subject, sec] of Object.entries(subjects)) {
+            const option = document.createElement("option");
+            option.text = subject; option.value = subject;
+            if(subject === currentSubject) option.selected = true;
+            select.add(option);
+            listDiv.innerHTML += `<div class="subject-item"><span><strong>${subject}</strong></span> <span>${formatTime(sec)}</span></div>`;
+        }
+        if (Object.keys(subjects).length === 0) listDiv.innerHTML = '<p style="text-align:center; color:#999; font-size:13px; margin:5px;">추가된 과목이 없습니다.</p>';
+    }
+
+    function addSubject() {
+        const subject = document.getElementById('subject-input').value.trim();
+        if(!subject) return alert("과목명을 입력하세요.");
+        const subjects = getSubjectsData();
+        if (subjects[subject] !== undefined) return alert("이미 존재하는 과목입니다.");
+        subjects[subject] = 0; 
+        localStorage.setItem(`user_${currentUser}_subjects`, JSON.stringify(subjects));
+        document.getElementById('subject-input').value = "";
+        refreshSubjectDOM();
+    }
+
+    function selectSubject() {
+        currentSubject = document.getElementById('subject-select').value;
+        currentSeconds = getSubjectsData()[currentSubject] || 0;
+        document.getElementById('time-display').innerText = formatTime(currentSeconds);
+    }
+
+    function startTimer() {
+        if(!currentSubject) return alert("과목을 선택해주세요.");
+        document.getElementById('subject-select').disabled = true;
+        document.getElementById('start-btn').disabled = true;
+        
+        timerInterval = setInterval(() => {
+            currentSeconds++;
+            document.getElementById('time-display').innerText = formatTime(currentSeconds);
+            const subjects = getSubjectsData();
+            subjects[currentSubject] = currentSeconds;
+            localStorage.setItem(`user_${currentUser}_subjects`, JSON.stringify(subjects));
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if(!timerInterval) return;
+        clearInterval(timerInterval);
+        timerInterval = null;
+        document.getElementById('subject-select').disabled = false;
+        document.getElementById('start-btn').disabled = false;
+        refreshSubjectDOM();
+        alert(`[${currentSubject}] 기록 저장 완료!`);
+    }
+
+    // === 5. 친구 관리 로직 ===
+    function getLocalFriends() {
+        return JSON.parse(localStorage.getItem(`user_${currentUser}_friends`) || '[]');
+    }
+
+    function saveLocalFriends(friends) {
+        localStorage.setItem(`user_${currentUser}_friends`, JSON.stringify(friends));
+    }
+
+    function addLocalFriend() {
+        const nameInput = document.getElementById('friend-name-input');
+        const name = nameInput.value.trim();
+
+        if (!name) return alert("친구 이름을 입력하세요.");
+
+        const friends = getLocalFriends();
+        if (friends.some(f => f.id === name)) return alert("이미 등록된 친구 이름입니다.");
+
+        friends.push({
+            id: name,
+            rankKey: "caveman",
+            totalSec: 0,
+            hearts: 0
+        });
+
+        saveLocalFriends(friends);
+        nameInput.value = "";
+        renderLocalFriendsData();
+    }
+
+    function deleteLocalFriend(friendId) {
+        if (!confirm(`${friendId} 친구를 목록에서 삭제하시겠습니까?`)) return;
+        let friends = getLocalFriends();
+        friends = friends.filter(f => f.id !== friendId);
+        saveLocalFriends(friends);
+        renderLocalFriendsData();
+    }
+
+    function renderLocalFriendsData() {
+        const listDiv = document.getElementById('friend-list-container');
+        listDiv.innerHTML = '';
+
+        const friends = getLocalFriends();
+
+        if (friends.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:#999;">아직 등록된 친구가 없습니다. 친구 이름을 입력해서 추가해 보세요!</p>';
+            return;
+        }
+
+        friends.forEach(friend => {
+            let visual = rankVisuals[friend.rankKey] || rankVisuals["caveman"];
+            const card = document.createElement('div');
+            card.className = 'friend-card';
+            card.innerHTML = `
+                <div class="friend-info">
+                    <div class="friend-pic"><img src="${visual.imgSrc}" alt="${visual.name}"></div>
+                    <div class="friend-details">
+                        <div class="friend-name">${friend.id} <span style="font-size:12px; color:${visual.color};">${visual.emoji} ${visual.name}</span></div>
+                        <div class="friend-status">공부 시간: ${formatTime(friend.totalSec || 0)}</div>
+                    </div>
+                </div>
+                <div style="display:flex; gap:5px; align-items:center;">
+                    <button class="heart-btn" onclick="giveFriendHeart('${friend.id}')">💖 <span>${friend.hearts || 0}</span></button>
+                    <button onclick="deleteLocalFriend('${friend.id}')" style="width:auto; margin:0; padding:6px 10px; background:#f44336; font-size:12px;">삭제</button>
+                </div>
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function giveFriendHeart(friendId) {
+        const friends = getLocalFriends();
+        const index = friends.findIndex(f => f.id === friendId);
+        if (index > -1) {
+            friends[index].hearts = (friends[index].hearts || 0) + 1;
+            saveLocalFriends(friends);
+            renderLocalFriendsData();
+        }
+    }
+
+    // === 6. 하루 기록 및 평가 관리 로직 ===
+    function getHistoryData() {
+        return JSON.parse(localStorage.getItem(`user_${currentUser}_history`) || '[]');
+    }
+
+    function showHistory() {
+        const listDiv = document.getElementById('history-list');
+        listDiv.innerHTML = '';
+        const history = getHistoryData();
+
+        if (history.length === 0) {
+            listDiv.innerHTML = '<p style="text-align:center; color:#999; font-size:13px; padding:20px;">아직 저장된 기록이 없습니다.</p>';
+            return;
+        }
+
+        history.forEach(item => {
+            const card = document.createElement('div');
+            card.className = 'history-card';
+            
+            let starsStr = '★'.repeat(item.rating) + '☆'.repeat(5 - item.rating);
+            let visual = rankVisuals[item.rankKey] || rankVisuals["caveman"];
+
+            card.innerHTML = `
+                <div style="font-weight:bold; color:#333; margin-bottom:5px;">📅 ${item.date}</div>
+                <div>신분: <span style="color:${visual.color}; font-weight:bold;">${visual.emoji} ${visual.name}</span></div>
+                <div>달성률: <strong>${item.todoRate}%</strong> | 총 공부시간: <strong>${item.totalTime}</strong></div>
+                <div style="color:#ffc107; margin:3px 0;">집중도: ${starsStr}</div>
+                <div style="font-size:13px; color:#666; margin-top:5px; background:#fff; padding:6px; border-radius:4px;">방해요소: ${item.distractions || '없음'}</div>
+                ${item.clothImg ? `
+                <div class="history-emoji">
+                    <img src="${item.clothImg}" alt="꾸미기 아이템">
+                </div>` : ''}
+            `;
+            listDiv.appendChild(card);
+        });
+    }
+
+    function endDay() {
+        if (timerInterval) {
+            if(!confirm("타이머가 작동 중입니다. 종료하고 하루를 마칠까요?")) return;
+            stopTimer();
+        }
+
+        const todos = getTodosData();
+        const rate = calculateTodoRate(todos);
+        currentRankKey = getRankKey(todos, rate);
+        const visual = rankVisuals[currentRankKey];
+
+        const subjects = getSubjectsData();
+        let totalSec = 0;
+        for (const sec of Object.values(subjects)) {
+            totalSec += sec;
+        }
+
+        document.getElementById('final-result-emoji').innerHTML = `<img src="${visual.imgSrc}" alt="${visual.name}" style="max-width: 60px;">`;
+        document.getElementById('final-result-text').innerText = `${visual.emoji} ${visual.name}`;
+        document.getElementById('final-result-text').style.color = visual.color;
+        document.getElementById('final-todo-rate').innerText = rate + "%";
+        document.getElementById('total-study-time').innerText = formatTime(totalSec);
+
+        setRating(0);
+        document.getElementById('distractions').value = '';
+        selectedClothImg = "";
+
+        switchScreen('eval-screen');
+    }
+
+    function setRating(rating) {
+        document.getElementById('focus-rating').value = rating;
+        const stars = document.querySelectorAll('#stars span');
+        stars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.add('active');
+            } else {
+                star.classList.remove('active');
+            }
+        });
+    }
+
+    function goToDressup() {
+        const rating = document.getElementById('focus-rating').value;
+        if (rating === "0") return alert("오늘의 집중도 평가 별점을 선택해주세요!");
+
+        const visual = rankVisuals[currentRankKey];
+        document.getElementById('dressup-base-img').src = visual.imgSrc;
+        
+        const overlay = document.getElementById('dressup-cloth-overlay');
+        overlay.style.display = 'none';
+        overlay.src = '';
+
+        const clothesListDiv = document.getElementById('clothes-list');
+        clothesListDiv.innerHTML = '';
+
+        const availableClothes = clothesData[currentRankKey] || [];
+        if (availableClothes.length === 0) {
+            clothesListDiv.innerHTML = '<p style="color:#999; font-size:13px;">이 신분에는 장착할 수 있는 전용 아이템이 없습니다.</p>';
+        } else {
+            availableClothes.forEach(cloth => {
+                const item = document.createElement('div');
+                item.className = 'cloth-item';
+                item.onclick = () => selectCloth(cloth.img);
+                item.innerHTML = `
+                    <img src="${cloth.img}" alt="${cloth.name}" onerror="this.src='https://via.placeholder.com/30?text=아이템'">
+                    <div>${cloth.name}</div>
+                `;
+                clothesListDiv.appendChild(item);
+            });
+        }
+
+        switchScreen('dressup-screen');
+    }
+
+    function selectCloth(imgUrl) {
+        selectedClothImg = imgUrl;
+        const overlay = document.getElementById('dressup-cloth-overlay');
+        overlay.src = imgUrl;
+        overlay.style.display = 'block';
+    }
+
+    function saveAndFinishDay() {
+        const todos = getTodosData();
+        const rate = calculateTodoRate(todos);
+        
+        const subjects = getSubjectsData();
+        let totalSec = 0;
+        for (const sec of Object.values(subjects)) {
+            totalSec += sec;
+        }
+
+        const rating = parseInt(document.getElementById('focus-rating').value) || 0;
+        const distractions = document.getElementById('distractions').value.trim();
+        
+        const now = new Date();
+        const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+
+        const historyItem = {
+            date: dateStr,
+            rankKey: currentRankKey,
+            todoRate: rate,
+            totalTime: formatTime(totalSec),
+            rating: rating,
+            distractions: distractions || '없음',
+            clothImg: selectedClothImg
+        };
+
+        const history = getHistoryData();
+        history.unshift(historyItem);
+        localStorage.setItem(`user_${currentUser}_history`, JSON.stringify(history));
+
+        let earnedHearts = 0;
+        if (rate === 100) earnedHearts = 5;
+        else if (rate >= 75) earnedHearts = 3;
+        else if (rate >= 50) earnedHearts = 2;
+        else if (rate >= 25) earnedHearts = 1;
+
+        if (earnedHearts > 0) {
+            let myHearts = parseInt(localStorage.getItem(`user_${currentUser}_myhearts`) || "0");
+            myHearts += earnedHearts;
+            localStorage.setItem(`user_${currentUser}_myhearts`, String(myHearts));
+            alert(`오늘 하루 수고하셨습니다!\n할 일 달성률 보상으로 💖 하트 ${earnedHearts}개를 획득했습니다!`);
+        } else {
+            alert(`오늘 하루 수고하셨습니다! 내일은 조금 더 파이팅해봐요!`);
+        }
+
+        localStorage.setItem(`user_${currentUser}_todos`, JSON.stringify([]));
+        localStorage.setItem(`user_${currentUser}_subjects`, JSON.stringify({}));
+        
+        currentSubject = "";
+        currentSeconds = 0;
+        document.getElementById('time-display').innerText = "00:00:00";
+        
+        switchScreen('main-screen');
+    }
+</script>
+
+</body>
+</html>
